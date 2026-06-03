@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер бюджета - WebAssembly</title>
+    <style>
+        /* Основные стили приложения */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1, h2 {
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button.delete {
+            background-color: #f44336;
+        }
+        
+        button.delete:hover {
+            background-color: #d32f2f;
+        }
+        
+        button.clear {
+            background-color: #ff9800;
+        }
+        
+        button.clear:hover {
+            background-color: #fb8c00;
+        }
+        
+        button.export {
+            background-color: #2196F3;
+        }
+        
+        button.export:hover {
+            background-color: #0b7dda;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .totals {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f2f2f2;
+            border-radius: 4px;
+        }
+        
+        .category-totals {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .budget-controls {
+            align-items: end;
+            display: flex;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .budget-controls .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .budget-controls button {
+            min-height: 39px;
+        }
+
+        .budget-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .over-budget {
+            color: #b42318;
+            font-weight: bold;
+        }
+        
+        .category-total-item {
+            background-color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        
+        .error-message {
+            color: #f44336;
+            margin-top: 5px;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Адаптивный дизайн */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+                margin-right: 0;
+            }
+
+            .budget-controls {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <h1>Планировщик бюджета и расходов</h1>
+            <p>Управляйте своими расходами с использованием WebAssembly (C/Wasm)</p>
+        </div>
+        
+        <!-- Форма ввода нового расхода -->
+        <div class="expense-form">
+            <h2>Добавить новый расход</h2>
+            
+            <form id="expenseForm">
+                <div class="form-row" style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="expenseDate">Дата:</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label for="expenseCategory">Категория:</label>
+                        <select id="expenseCategory" required>
+                            <option value="">-- Выберите категорию --</option>
+                            <option value="Food">Еда</option>
+                            <option value="Transport">Транспорт</option>
+                            <option value="Utilities">Коммуналка</option>
+                            <option value="Entertainment">Развлечения</option>
+                            <option value="Housing">Жилье</option>
+                            <option value="Healthcare">Здоровье</option>
+                            <option value="Education">Образование</option>
+                            <option value="Shopping">Покупки</option>
+                            <option value="Other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label for="expenseAmount">Сумма:</label>
+                        <input type="number" id="expenseAmount" step="0.01" min="0.01" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expenseDescription">Описание:</label>
+                    <input type="text" id="expenseDescription" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="addExpenseBtn">Добавить расход</button>
+                    <button type="button" id="clearAllBtn" class="clear">Очистить расходы</button>
+                    <button type="button" id="exportCsvBtn" class="export">Экспортировать в CSV</button>
+                </div>
+                
+                <!-- Сообщения -->
+                <div id="messageArea" class="hidden"></div>
+            </form>
+        </div>
+        
+        <!-- Таблица расходов -->
+        <div class="expense-list">
+            <h2>Список расходов</h2>
+            
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Категория</th>
+                        <th>Сумма</th>
+                        <th>Описание</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                    <tr id="noExpensesRow">
+                        <td colspan="5" style="text-align: center;">Расходы еще не добавлены</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Сводка и итоги -->
+        <div class="totals">
+            <h2>Сводка расходов</h2>
+            
+            <div class="total-expenses">
+                <strong>Всего потрачено:</strong> <span id="totalExpenses">$0.00</span>
+            </div>
+
+            <div class="budget-controls">
+                <div class="form-group">
+                    <label for="budgetLimitInput">Лимит бюджета:</label>
+                    <input type="number" id="budgetLimitInput" step="0.01" min="0" placeholder="Установите лимит">
+                </div>
+                <button type="button" id="setBudgetBtn">Установить лимит</button>
+            </div>
+
+            <div class="budget-summary">
+                <div><strong>Лимит бюджета:</strong> <span id="budgetLimit">Не установлен</span></div>
+                <div><strong>Оставшийся бюджет:</strong> <span id="remainingBudget">Не установлен</span></div>
+            </div>
+            
+            <!-- Итоги по категориям -->
+            <div class="category-totals-section">
+                <h3>Расходы по категориям:</h3>
+                <div id="categoryTotals" class="category-totals">
+                    <div id="noCategoriesMessage">Расходы еще не добавлены</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="Module._showHelloMessage()">Приветствие из C</button>
+        </div>
+    </div>
+    
+    <!-- Скрипты инициализации Wasm и приложения -->
+    <script>
+        // Коллбеки для C-кода (будут переопределены в app.js)
+        function updateExpenseTable() { console.log("updateExpenseTable"); }
+        function updateTotalExpenses(total) { console.log("updateTotalExpenses", total); }
+        function updateBudgetSummary(limit, remaining) { console.log("updateBudgetSummary", limit, remaining); }
+        function updateCategoryTotals() { console.log("updateCategoryTotals"); }
+
+        // Конфигурация модуля Emscripten
+        var Module = {
+            onRuntimeInitialized: function() {
+                console.log("WebAssembly модуль инициализирован");
+                updateExpenseTable();
+                updateTotalExpenses(0);
+                updateBudgetSummary(0, 0);
+                updateCategoryTotals();
+            }
+        };
+    </script>
+    <script src="index.js"></script>
+    <script>
+        // Инициализируем WebAssembly
+        BudgetPlanner(Module).then(function(initializedModule) {
+            Module = initializedModule;
+        }).catch(function(error) {
+            console.error("Ошибка инициализации WebAssembly:", error);
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
