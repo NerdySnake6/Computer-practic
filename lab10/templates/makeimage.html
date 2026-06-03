@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Генерация изображений</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 680px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: 700;
+        }
+
+        input,
+        textarea,
+        button {
+            box-sizing: border-box;
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            font: inherit;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            color: red;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    {% if message %}
+        <p class="message" role="alert">{{ message }}</p>
+    {% endif %}
+
+    <form action="/makeimage" method="post" enctype="application/x-www-form-urlencoded" novalidate>
+        <label for="width">Ширина (от 256 до 1024, кратно 32)</label>
+        <input id="width" name="width" type="number" min="256" max="1024" step="32" value="{{ width|default(512) }}" required>
+
+        <label for="height">Высота (от 256 до 1024, кратно 32)</label>
+        <input id="height" name="height" type="number" min="256" max="1024" step="32" value="{{ height|default(512) }}" required>
+
+        <label for="text">Описание изображения (промпт)</label>
+        <textarea id="text" name="text" placeholder="Например: красивый закат на озере в горах, 4k" required>{{ text|default("") }}</textarea>
+
+        <button type="submit">Сгенерировать JPEG</button>
+    </form>
+</body>
+</html>
