@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа 12 — Yandex.Serverless Applications</title>
+    <!-- Подключаем шрифт Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #3b82f6;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .author {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin: 40px 0 20px;
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 15px;
+        }
+
+        /* Карточка демонстрации Pillow */
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .interactive-control {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: var(--text-main);
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+        }
+
+        .preview-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 150px;
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Шаги отчета */
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .step-num {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .screenshot-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            background: #111827;
+            position: relative;
+        }
+
+        .screenshot-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+            transition: transform 0.5s ease;
+        }
+
+        .screenshot-container:hover img {
+            transform: scale(1.02);
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="author">Логин Moodle: 1167133</div>
+            <h1>Лабораторная работа 12</h1>
+            <p class="subtitle">Облачные приложения - Yandex.Serverless Applications</p>
+        </header>
+
+        <h2 class="section-title">Интерактивный Pillow Генератор</h2>
+        <div class="interactive-card">
+            <div class="interactive-grid">
+                <div class="interactive-control">
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 10px;">
+                        Ниже представлена демонстрация работы библиотеки Pillow. Введите текст и выберите цвета, чтобы сгенерировать PNG-баннер в реальном времени с нашего серверного API.
+                    </p>
+                    <div class="form-group">
+                        <label for="badgeText">Текст на изображении</label>
+                        <input type="text" id="badgeText" value="1167133 - Успешно!">
+                    </div>
+                    <div class="form-group">
+                        <label for="bgColor">Цвет фона (Hex)</label>
+                        <input type="text" id="bgColor" value="#3b82f6">
+                    </div>
+                    <div class="form-group">
+                        <label for="textColor">Цвет текста (Hex)</label>
+                        <input type="text" id="textColor" value="#ffffff">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <img id="badgePreview" src="/badge?text=1167133%20-%20Успешно!&bg=%233b82f6&fg=%23ffffff" alt="Превью баннера Pillow">
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Ход выполнения лабораторной работы</h2>
+
+        <!-- Шаг 1 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 1</div>
+            <div class="step-title">Установка Yandex SourceCraft Code Assistant</div>
+            <div class="step-desc">
+                Скачали VSIX плагина с официального сайта SourceCraft и установили его в VSCode с помощью CLI-команды <code>code --install-extension</code>. В боковой панели отобразилась инструкция по авторизации.
+            </div>
+            <div class="screenshot-container">
+                <img src="/static/step1.png" alt="Инструкции SourceCraft в VSCode">
+            </div>
+        </div>
+
+        <!-- Шаг 2 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 2</div>
+            <div class="step-title">Авторизация в Code Assistant</div>
+            <div class="step-desc">
+                Провели сопряжение VSCode с личным кабинетом Yandex Cloud для полноценной работы AI-помощника генерации кода.
+            </div>
+            <div class="screenshot-container">
+                <img src="/static/step2.png" alt="Успешная установка расширения">
+            </div>
+        </div>
+
+        <!-- Шаг 3 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 3</div>
+            <div class="step-title">Установка плагина Yandex Cloud Toolkit</div>
+            <div class="step-desc">
+                Изучили репозиторий Yandex Cloud MCP серверов и сконфигурировали сервер Toolkit для интеграции со средой разработки, добавив настройки в mcp_config.json.
+            </div>
+            <div class="screenshot-container">
+                <img src="/static/step3.png" alt="Описание Yandex Cloud Toolkit MCP">
+            </div>
+        </div>
+
+        <!-- Шаг 4 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 4</div>
+            <div class="step-title">Настройка конфигурации MCP-сервера</div>
+            <div class="step-desc">
+                Определили параметры командного вызова npx для запуска серверов Toolkit и Containers по протоколу STDIO.
+            </div>
+            <div class="screenshot-container">
+                <img src="/static/step4.png" alt="Настройки mcpServers">
+            </div>
+        </div>
+
+        <!-- Шаг 5 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 5</div>
+            <div class="step-title">Подключение Yandex Cloud Containers</div>
+            <div class="step-desc">
+                Настроили MCP-сервер Containers для автоматизации операций с Docker-реестрами и развертыванием бессерверных контейнеров.
+            </div>
+            <div class="screenshot-container">
+                <img src="/static/step5.webp" alt="Containers MCP Server">
+            </div>
+        </div>
+
+        <!-- Шаг 6 -->
+        <div class="step-card">
+            <div class="step-num">Шаг 6</div>
+            <div class="step-title">Деплой в Yandex Serverless Containers</div>
+            <div class="step-desc">
+                Для автоматического развертывания веб-приложения использовали Yandex Cloud CLI (yc) и Docker-образ, запушив его в реестр <code>flask-app-registry</code>.
+            </div>
+            <div class="code-block">
+                yc serverless container revision deploy \<br>
+                &nbsp;&nbsp;--container-name flask-app-container \<br>
+                &nbsp;&nbsp;--image cr.yandex/crpq8o.../flask-app:latest \<br>
+                &nbsp;&nbsp;--cores 1 --memory 128MB --concurrency 16
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const badgeText = document.getElementById('badgeText');
+        const bgColor = document.getElementById('bgColor');
+        const textColor = document.getElementById('textColor');
+        const badgePreview = document.getElementById('badgePreview');
+
+        function updateBadge() {
+            const textVal = encodeURIComponent(badgeText.value);
+            const bgVal = encodeURIComponent(bgColor.value);
+            const fgVal = encodeURIComponent(textColor.value);
+            
+            badgePreview.src = `/badge?text=${textVal}&bg=${bgVal}&fg=${fgVal}`;
+        }
+
+        badgeText.addEventListener('input', updateBadge);
+        bgColor.addEventListener('input', updateBadge);
+        textColor.addEventListener('input', updateBadge);
+    </script>
+</body>
+</html>
