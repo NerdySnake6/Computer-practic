@@ -1,0 +1,12 @@
+{
+  "name": "lab14",
+  "version": "1.0.0",
+  "description": "Скрапинг преподавателей РГПУ им. А. И. Герцена",
+  "main": "scraper_puppeteer.js",
+  "scripts": {
+    "start": "node scraper_puppeteer.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.10.0"
+  }
+}
