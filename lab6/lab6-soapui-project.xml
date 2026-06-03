@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="c0f64c67-6a23-455b-b9f1-325ea9470f1a" activeEnvironment="Default" name="REST Weather Workflow" resourceRoot="" soapui-version="5.7.0" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings/>
+  <con:interface xsi:type="con:RestService" id="e94efde4-a55e-4c74-8b65-0a811c750b32" name="REST Countries API" type="rest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <con:settings/>
+    <con:definitionCache type="TEXT" rootPart=""/>
+    <con:endpoints>
+      <con:endpoint>https://restcountries.com</con:endpoint>
+    </con:endpoints>
+    <con:resource name="Country Name" path="/v3.1/name/{countryName}" id="df054df5-6450-482a-bc91-23eaef92b0c3">
+      <con:settings/>
+      <con:parameters>
+        <con:parameter>
+          <con:name>countryName</con:name>
+          <con:value>Finland</con:value>
+          <con:style>TEMPLATE</con:style>
+          <con:default>Finland</con:default>
+        </con:parameter>
+      </con:parameters>
+      <con:method name="GetCountryInfo" id="9d949826-bb21-4fbb-a1a7-5439779df5c4" method="GET">
+        <con:settings/>
+        <con:parameters/>
+        <con:representation type="RESPONSE">
+          <con:mediaType>application/json</con:mediaType>
+          <con:status>200</con:status>
+        </con:representation>
+      </con:method>
+    </con:resource>
+  </con:interface>
+  <con:interface xsi:type="con:RestService" id="b0a7ed91-4475-4089-a2e9-4e7892eb5fbb" name="Open Meteo Weather API" type="rest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <con:settings/>
+    <con:definitionCache type="TEXT" rootPart=""/>
+    <con:endpoints>
+      <con:endpoint>https://api.open-meteo.com</con:endpoint>
+    </con:endpoints>
+    <con:resource name="Forecast" path="/v1/forecast" id="bf4d521d-de4d-45db-9a8c-ce4e2863920c">
+      <con:settings/>
+      <con:parameters>
+        <con:parameter>
+          <con:name>latitude</con:name>
+          <con:value>60.17</con:value>
+          <con:style>QUERY</con:style>
+          <con:default>60.17</con:default>
+        </con:parameter>
+        <con:parameter>
+          <con:name>longitude</con:name>
+          <con:value>24.93</con:value>
+          <con:style>QUERY</con:style>
+          <con:default>24.93</con:default>
+        </con:parameter>
+        <con:parameter>
+          <con:name>current_weather</con:name>
+          <con:value>true</con:value>
+          <con:style>QUERY</con:style>
+          <con:default>true</con:default>
+        </con:parameter>
+      </con:parameters>
+      <con:method name="GetWeather" id="bf9d91f2-1fb8-4c91-bd81-30dbd4c9f139" method="GET">
+        <con:settings/>
+        <con:parameters/>
+        <con:representation type="RESPONSE">
+          <con:mediaType>application/json</con:mediaType>
+          <con:status>200</con:status>
+        </con:representation>
+      </con:method>
+    </con:resource>
+  </con:interface>
+  <con:testSuite id="bc84ad9a-a82f-48d6-ae83-5bc68ef8e39f" name="WeatherTestSuite">
+    <con:settings/>
+    <con:runType>SEQUENTIAL</con:runType>
+    <con:testCase id="0ff94bde-39e2-45be-ab44-1296bf3cb6ef" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="GetWeatherWorkflow" searchProperties="true">
+      <con:settings/>
+      <con:testStep type="restrequest" name="GetCountryInfo" id="a3542289-4e09-402a-bf39-4d6d8ee1c3e3">
+        <con:settings/>
+        <con:config service="REST Countries API" resourcePath="/v3.1/name/{countryName}" methodName="GetCountryInfo" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:restRequest name="GetCountryInfoRequest" id="9e88d6ef-46c5-4d0f-a9db-84b2eb25e4c6" mediaType="application/json">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:endpoint>https://restcountries.com</con:endpoint>
+            <con:request/>
+            <con:originalUri>https://restcountries.com/v3.1/name/Finland</con:originalUri>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:parameters>
+              <con:entry key="countryName" value="Finland"/>
+            </con:parameters>
+            <con:parameterOrder>
+              <con:entry>countryName</con:entry>
+            </con:parameterOrder>
+            <con:assertions>
+              <con:assertion type="Valid HTTP Status Codes" id="70570b74-124b-449e-b145-a92ad69b2d87" name="Valid HTTP Status Codes">
+                <con:configuration>
+                  <codes>200</codes>
+                </con:configuration>
+              </con:assertion>
+            </con:assertions>
+          </con:restRequest>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="CoordinateTransfer" id="3fbbd81e-bdbe-4cb9-b883-9b8897ee2e18">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers transferToAll="false" useNullForMissingValue="true" ignoreEmptyvalue="false" failOnError="true" transferChildNodes="false" setOuterResults="false">
+            <con:name>transferLatitude</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>GetCountryInfo</con:sourceStep>
+            <con:sourcePath>$[0].capitalInfo.latlng[0]</con:sourcePath>
+            <con:targetType>latitude</con:targetType>
+            <con:targetStep>GetWeather</con:targetStep>
+            <con:targetPath/>
+            <con:type>JSONPATH</con:type>
+            <con:upgraded>true</con:upgraded>
+          </con:transfers>
+          <con:transfers transferToAll="false" useNullForMissingValue="true" ignoreEmptyvalue="false" failOnError="true" transferChildNodes="false" setOuterResults="false">
+            <con:name>transferLongitude</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>GetCountryInfo</con:sourceStep>
+            <con:sourcePath>$[0].capitalInfo.latlng[1]</con:sourcePath>
+            <con:targetType>longitude</con:targetType>
+            <con:targetStep>GetWeather</con:targetStep>
+            <con:targetPath/>
+            <con:type>JSONPATH</con:type>
+            <con:upgraded>true</con:upgraded>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="restrequest" name="GetWeather" id="a3542289-4e09-402a-bf39-4d6d8ee1c3e4">
+        <con:settings/>
+        <con:config service="Open Meteo Weather API" resourcePath="/v1/forecast" methodName="GetWeather" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:restRequest name="GetWeatherRequest" id="9e88d6ef-46c5-4d0f-a9db-84b2eb25e4c7" mediaType="application/json">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:endpoint>https://api.open-meteo.com</con:endpoint>
+            <con:request/>
+            <con:originalUri>https://api.open-meteo.com/v1/forecast</con:originalUri>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:parameters>
+              <con:entry key="latitude" value="60.17"/>
+              <con:entry key="longitude" value="24.93"/>
+              <con:entry key="current_weather" value="true"/>
+            </con:parameters>
+            <con:parameterOrder>
+              <con:entry>latitude</con:entry>
+              <con:entry>longitude</con:entry>
+              <con:entry>current_weather</con:entry>
+            </con:parameterOrder>
+            <con:assertions>
+              <con:assertion type="Valid HTTP Status Codes" id="70570b74-124b-449e-b145-a92ad69b2d88" name="Valid HTTP Status Codes">
+                <con:configuration>
+                  <codes>200</codes>
+                </con:configuration>
+              </con:assertion>
+            </con:assertions>
+          </con:restRequest>
+        </con:config>
+      </con:testStep>
+      <con:properties/>
+      <con:reportParameters/>
+    </con:testCase>
+    <con:properties/>
+    <con:reportParameters/>
+  </con:testSuite>
+  <con:properties/>
+  <con:wssContainer/>
+  <con:databaseConnectionContainer/>
+  <con:oAuth2ProfileContainer/>
+  <con:oAuth1ProfileContainer/>
+  <con:reporting/>
+  <con:sensitiveInformation/>
+</con:soapui-project>
