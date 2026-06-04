@@ -1,0 +1,8 @@
+baseURL = "/"
+languageCode = "ru-ru"
+title = "Калинин Игорь | Full Stack разработчик"
+theme = "ananke"
+
+[params]
+  author = "Игорь Калинин"
+  description = "Full Stack разработчик, создаю современные веб-приложения"

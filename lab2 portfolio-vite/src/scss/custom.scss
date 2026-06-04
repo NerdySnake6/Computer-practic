@@ -1,0 +1,36 @@
+// 1. Переопределяем переменные Bootstrap
+$primary: #6d28d9;      // фиолетовый
+$secondary: #10b981;     // зелёный
+$dark: #0f172a;          // тёмно-синий
+$light: #f8fafc;
+
+$body-bg: $dark;
+$body-color: #e2e8f0;
+$card-bg: #1e293b;
+$card-border-color: #334155;
+
+// 2. Импортируем Bootstrap
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+// 3. Кастомные стили
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.skill-card {
+  background: #334155;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  display: inline-block;
+  margin: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.nav-link {
+  color: #94a3b8 !important;
+  &:hover {
+    color: $primary !important;
+  }
+}
