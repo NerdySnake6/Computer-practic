@@ -1,5 +1,8 @@
 import io
 import os
+import urllib.request
+import urllib.parse
+import json
 
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, render_template, request
@@ -7,7 +10,7 @@ from huggingface_hub import InferenceClient
 from PIL import Image
 
 # Загружаем переменные окружения из файла .env
-load_dotenv()
+load_dotenv(override=True)
 
 app = Flask(__name__)
 
@@ -16,6 +19,23 @@ MODEL_ID = "black-forest-labs/FLUX.1-schnell"
 MIN_SIZE = 256
 MAX_SIZE = 1024
 JPEG_QUALITY = 88
+
+
+def translate_to_english(text):
+    # Проверяем, есть ли в тексте кириллица
+    has_cyrillic = any('\u0400' <= char <= '\u04FF' for char in text)
+    if not has_cyrillic:
+        return text
+    try:
+        url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=" + urllib.parse.quote(text)
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            translated = "".join([item[0] for item in data[0] if item[0]])
+            return translated
+    except Exception as e:
+        print(f"Ошибка перевода: {e}")
+        return text
 
 
 @app.get("/login")
@@ -63,9 +83,12 @@ def makeimage_submit():
     if not token:
         return render_makeimage_error("Не удалось сгенерировать изображение: API токен Hugging Face не настроен")
 
+    # Переводим текст на английский язык, если в нём есть русский
+    text_en = translate_to_english(text)
+
     try:
         # Генерируем картинку с помощью модели
-        image = generate_image(text, width, height, token)
+        image = generate_image(text_en, width, height, token)
         jpeg_bytes = image_to_jpeg(image, width, height)
     except Exception as exc:
         return render_makeimage_error(f"Ошибка генерации модели: {exc}")
@@ -120,4 +143,4 @@ def image_to_jpeg(image, width, height):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8084)
